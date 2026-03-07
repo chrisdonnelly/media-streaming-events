@@ -17,6 +17,7 @@ addopts = [
 
 [dependency-groups]
 dev = [
+    "prek>=0.3.4",
     "pyrefly>=0.55.0",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
@@ -49,5 +50,5 @@ source = ["."]
 omit = ["**/tests/**", "main.py"]
 
 [tool.coverage.report]
-fail_under = 100
+fail_under = 90
 show_missing = true

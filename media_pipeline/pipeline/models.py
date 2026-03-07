@@ -1,12 +1,13 @@
-import structlog
 from typing import Any
+
+import structlog
 from pydantic import (
+    AwareDatetime,
     BaseModel,
     ConfigDict,
     Field,
     ValidationError,
     field_validator,
-    AwareDatetime,
     model_validator,
 )
 

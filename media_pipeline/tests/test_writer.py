@@ -1,11 +1,9 @@
 import json
 from datetime import datetime, timezone
 
-import pytest
-
-from media_pipeline.tests.conftest import ListDLQ
 from media_pipeline.pipeline.models import FeatureRecord
 from media_pipeline.pipeline.writer import JSONWriter
+from media_pipeline.tests.conftest import ListDLQ
 
 
 def test_write_creates_feature_records_file(tmp_path):

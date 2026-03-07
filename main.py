@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from media_pipeline.sample_data import SAMPLE_RECORDS
 from media_pipeline.pipeline.consumer import MockEventReader
 from media_pipeline.pipeline.processor import EventProcessor
 from media_pipeline.pipeline.session import DeadLetterQueue, SessionManager
 from media_pipeline.pipeline.writer import JSONWriter
+from media_pipeline.sample_data import SAMPLE_RECORDS
 
 
 class InMemoryDLQ(DeadLetterQueue):

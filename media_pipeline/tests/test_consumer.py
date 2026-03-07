@@ -1,4 +1,4 @@
-from media_pipeline.pipeline.consumer import MockEventReader, MAX_RECORDS_PER_READ
+from media_pipeline.pipeline.consumer import MAX_RECORDS_PER_READ, MockEventReader
 
 
 def test_read_returns_records_in_order():

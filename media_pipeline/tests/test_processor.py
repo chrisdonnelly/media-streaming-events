@@ -1,11 +1,11 @@
-from media_pipeline.tests.conftest import CapturingWriter, ListDLQ
 from media_pipeline.pipeline.constants import (
     REASON_UNKNOWN_EVENT_TYPE,
     REASON_VALIDATION_FAILURE,
 )
 from media_pipeline.pipeline.consumer import MockEventReader
-from media_pipeline.pipeline.processor import EventProcessor, ProcessingResult
+from media_pipeline.pipeline.processor import EventProcessor
 from media_pipeline.pipeline.session import SessionManager
+from media_pipeline.tests.conftest import CapturingWriter, ListDLQ
 
 
 def test_validation_failure_sent_to_dlq(frozen_time, play_event_payload):

@@ -1,13 +1,14 @@
+from datetime import datetime, timezone
+
 from media_pipeline.pipeline.models import (
     FeatureRecord,
-    PlayEvent,
     PauseEvent,
+    PlayEvent,
     StopEvent,
     UnknownEvent,
     UnknownEventPayload,
     parse_event,
 )
-from datetime import datetime, timezone
 
 
 def test_play_event_valid(play_event_payload):

@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
+
 import pytest
 import time_machine
-from datetime import datetime, timezone
 
 from media_pipeline.pipeline.models import FeatureRecord
 from media_pipeline.pipeline.session import DeadLetterQueue

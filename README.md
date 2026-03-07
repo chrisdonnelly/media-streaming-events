@@ -33,6 +33,16 @@ Run tests:
 uv run pytest
 ```
 
+Type checking:
+```bash
+uv run pyrefly check
+```
+
+Linting:
+```bash
+uv run ruff format
+```
+
 Output is written to `media_pipeline/output/`: feature records in `feature_records.jsonl`, dead letter entries in `dead_letter.jsonl`.
 
 Sample input data is defined in `media_pipeline/sample_data.py` and covers the following scenarios:

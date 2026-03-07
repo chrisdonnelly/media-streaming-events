@@ -1,4 +1,4 @@
-from media_pipeline.tests.conftest import ListDLQ
+from media_pipeline.pipeline.constants import REASON_LATE_EVENT
 from media_pipeline.pipeline.models import (
     FeatureRecord,
     PauseEvent,
@@ -6,8 +6,8 @@ from media_pipeline.pipeline.models import (
     StopEvent,
     parse_event,
 )
-from media_pipeline.pipeline.constants import REASON_LATE_EVENT
 from media_pipeline.pipeline.session import Session, SessionManager
+from media_pipeline.tests.conftest import ListDLQ
 
 
 def test_session_add_event_play_then_stop_produces_complete_session(
