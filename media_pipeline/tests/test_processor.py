@@ -1,38 +1,11 @@
-from datetime import datetime, timezone
-
+from media_pipeline.tests.conftest import CapturingWriter, ListDLQ
 from media_pipeline.pipeline.constants import (
     REASON_UNKNOWN_EVENT_TYPE,
     REASON_VALIDATION_FAILURE,
 )
 from media_pipeline.pipeline.consumer import MockEventReader
-from media_pipeline.pipeline.models import FeatureRecord
 from media_pipeline.pipeline.processor import EventProcessor, ProcessingResult
-from media_pipeline.pipeline.session import DeadLetterQueue, SessionManager
-from media_pipeline.pipeline.writer import EventWriter
-
-
-class CapturingWriter(EventWriter):
-    def __init__(self):
-        self.records: list[FeatureRecord] = []
-
-    def write(self, record: FeatureRecord) -> None:
-        self.records.append(record)
-
-
-class ListDLQ(DeadLetterQueue):
-    def __init__(self):
-        self._entries: list[dict] = []
-
-    def add(self, raw: dict, reason: str) -> None:
-        self._entries.append(
-            {"raw": raw, "reason": reason, "timestamp": datetime.now(timezone.utc)}
-        )
-
-    def get_all(self) -> list[dict]:
-        return list(self._entries)
-
-    def count(self) -> int:
-        return len(self._entries)
+from media_pipeline.pipeline.session import SessionManager
 
 
 def test_validation_failure_sent_to_dlq(frozen_time, play_event_payload):
@@ -41,9 +14,7 @@ def test_validation_failure_sent_to_dlq(frozen_time, play_event_payload):
     reader = MockEventReader([payload])
     dlq = ListDLQ()
     writer = CapturingWriter()
-    processor = EventProcessor(
-        reader, SessionManager(dlq), writer, dlq
-    )
+    processor = EventProcessor(reader, SessionManager(dlq), writer, dlq)
     result = processor.process_batch()
     assert result.processed == 1
     assert result.dead_lettered == 1
@@ -57,9 +28,7 @@ def test_unknown_event_sent_to_dlq(frozen_time, unknown_event_payload):
     reader = MockEventReader([unknown_event_payload])
     dlq = ListDLQ()
     writer = CapturingWriter()
-    processor = EventProcessor(
-        reader, SessionManager(dlq), writer, dlq
-    )
+    processor = EventProcessor(reader, SessionManager(dlq), writer, dlq)
     result = processor.process_batch()
     assert result.processed == 1
     assert result.dead_lettered == 1
@@ -75,9 +44,7 @@ def test_typed_event_play_stop_writes_record(
     reader = MockEventReader([play_event_payload, stop_event_payload])
     dlq = ListDLQ()
     writer = CapturingWriter()
-    processor = EventProcessor(
-        reader, SessionManager(dlq), writer, dlq
-    )
+    processor = EventProcessor(reader, SessionManager(dlq), writer, dlq)
     result = processor.process_batch()
     assert result.processed == 2
     assert result.dead_lettered == 0
@@ -99,9 +66,7 @@ def test_processing_result_counts_accurate(
     )
     dlq = ListDLQ()
     writer = CapturingWriter()
-    processor = EventProcessor(
-        reader, SessionManager(dlq), writer, dlq
-    )
+    processor = EventProcessor(reader, SessionManager(dlq), writer, dlq)
     result = processor.process_batch()
     typed_event_count = 2
     assert result.processed == 4
@@ -124,9 +89,7 @@ def test_shutdown_flushes_and_closes(frozen_time, play_event_payload):
     reader = MockEventReader([play_event_payload])
     dlq = ListDLQ()
     writer = CapturingWriter()
-    processor = EventProcessor(
-        reader, SessionManager(dlq), writer, dlq
-    )
+    processor = EventProcessor(reader, SessionManager(dlq), writer, dlq)
     processor.process_batch()
     processor.shutdown()
     assert len(writer.records) == 1

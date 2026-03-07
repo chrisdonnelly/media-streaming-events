@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-
+from media_pipeline.tests.conftest import ListDLQ
 from media_pipeline.pipeline.models import (
     FeatureRecord,
     PauseEvent,
@@ -7,30 +6,8 @@ from media_pipeline.pipeline.models import (
     StopEvent,
     parse_event,
 )
-from media_pipeline.pipeline.constants import (
-    REASON_LATE_EVENT,
-)
-from media_pipeline.pipeline.session import (
-    DeadLetterQueue,
-    Session,
-    SessionManager,
-)
-
-
-class ListDLQ(DeadLetterQueue):
-    def __init__(self):
-        self._entries: list[dict] = []
-
-    def add(self, raw: dict, reason: str) -> None:
-        self._entries.append(
-            {"raw": raw, "reason": reason, "timestamp": datetime.now(timezone.utc)}
-        )
-
-    def get_all(self) -> list[dict]:
-        return list(self._entries)
-
-    def count(self) -> int:
-        return len(self._entries)
+from media_pipeline.pipeline.constants import REASON_LATE_EVENT
+from media_pipeline.pipeline.session import Session, SessionManager
 
 
 def test_session_add_event_play_then_stop_produces_complete_session(

@@ -2,7 +2,35 @@ import pytest
 import time_machine
 from datetime import datetime, timezone
 
+from media_pipeline.pipeline.models import FeatureRecord
+from media_pipeline.pipeline.session import DeadLetterQueue
+from media_pipeline.pipeline.writer import EventWriter
+
 FROZEN_TIMESTAMP = "2026-03-07T12:00:00+00:00"
+
+
+class CapturingWriter(EventWriter):
+    def __init__(self):
+        self.records: list[FeatureRecord] = []
+
+    def write(self, record: FeatureRecord) -> None:
+        self.records.append(record)
+
+
+class ListDLQ(DeadLetterQueue):
+    def __init__(self):
+        self._entries: list[dict] = []
+
+    def add(self, raw: dict, reason: str) -> None:
+        self._entries.append(
+            {"raw": raw, "reason": reason, "timestamp": datetime.now(timezone.utc)}
+        )
+
+    def get_all(self) -> list[dict]:
+        return list(self._entries)
+
+    def count(self) -> int:
+        return len(self._entries)
 
 
 @pytest.fixture
