@@ -1,10 +1,11 @@
 from media_pipeline.pipeline.models import (
+    FeatureRecord,
     PlayEvent,
     PauseEvent,
     StopEvent,
     UnknownEvent,
+    UnknownEventPayload,
     parse_event,
-    FeatureRecord,
 )
 from datetime import datetime, timezone
 
@@ -61,7 +62,10 @@ def test_unknown_event_valid(unknown_event_payload):
 
 
 def test_unknown_event_captures_extra_fields_in_raw_payload(unknown_event_payload):
-    payload_with_extras = {**unknown_event_payload, "unknown_field": "unknown_value"}
+    payload_with_extras: UnknownEventPayload = {
+        **unknown_event_payload,
+        "unknown_field": "unknown_value",
+    }
     event = UnknownEvent(**payload_with_extras)
     assert isinstance(event, UnknownEvent)
     assert "unknown_field" in event.raw_payload
@@ -69,7 +73,7 @@ def test_unknown_event_captures_extra_fields_in_raw_payload(unknown_event_payloa
 
 
 def test_unknown_event_raw_payload_accepts_arbitrary_keys(unknown_event_payload):
-    payload_with_extras = {
+    payload_with_extras: UnknownEventPayload = {
         **unknown_event_payload,
         "unknown_field": "unknown_value",
         "nested": {"key": "value"},

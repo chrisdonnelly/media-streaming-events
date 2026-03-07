@@ -1,4 +1,5 @@
 import structlog
+from typing import Any
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -10,6 +11,9 @@ from pydantic import (
 )
 
 logger = structlog.get_logger()
+
+
+type UnknownEventPayload = dict[str, Any]
 
 
 class BaseEvent(BaseModel):
@@ -48,7 +52,7 @@ class StopEvent(BaseEvent):
 
 
 class UnknownEvent(BaseEvent):
-    raw_payload: dict = Field(default_factory=dict)
+    raw_payload: UnknownEventPayload = Field(default_factory=dict)
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
