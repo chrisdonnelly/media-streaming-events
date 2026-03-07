@@ -22,6 +22,11 @@ class JSONWriter(EventWriter):
         with open(self._feature_path, "a") as f:
             f.write(record.model_dump_json() + "\n")
 
+    def _json_default(self, o):
+        if hasattr(o, "isoformat"):
+            return o.isoformat()
+        raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+
     def write_dead_letter(self, dlq: DeadLetterQueue) -> None:
         entries = dlq.get_all()
         with open(self._dead_letter_path, "a") as f:
@@ -35,4 +40,4 @@ class JSONWriter(EventWriter):
                         else entry["timestamp"]
                     ),
                 }
-                f.write(json.dumps(out) + "\n")
+                f.write(json.dumps(out, default=self._json_default) + "\n")
