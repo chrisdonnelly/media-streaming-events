@@ -1,5 +1,4 @@
 import structlog
-from datetime import datetime
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -7,6 +6,7 @@ from pydantic import (
     ValidationError,
     field_validator,
     AwareDatetime,
+    model_validator,
 )
 
 logger = structlog.get_logger()
@@ -48,7 +48,19 @@ class StopEvent(BaseEvent):
 
 
 class UnknownEvent(BaseEvent):
-    raw_payload: dict
+    raw_payload: dict = Field(default_factory=dict)
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    @classmethod
+    def _prepare_unknown_event_data(cls, data: object) -> object:
+        if isinstance(data, dict):
+            return {**data, "raw_payload": dict(data)}
+        return data
+
+    @model_validator(mode="before")
+    def capture_raw_payload(cls, data: object) -> object:
+        return cls._prepare_unknown_event_data(data)
 
 
 def parse_event(raw_payload: dict) -> BaseEvent | None:
@@ -61,8 +73,8 @@ def parse_event(raw_payload: dict) -> BaseEvent | None:
         if event_type == "STOP":
             return StopEvent(**raw_payload)
         if event_type not in ["PLAY", "PAUSE", "STOP"]:
-            return UnknownEvent(**raw_payload, raw_payload=raw_payload)
-    except ValidationError as err:
+            return UnknownEvent(**raw_payload)
+    except ValidationError:
         return None
 
 
