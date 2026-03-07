@@ -21,7 +21,6 @@ class MockEventReader(EventReader):
     def __init__(self, records: list[dict]):
         self._records = list(records)
         self._closed = False
-        # Test instrumentation only — not part of EventReader interface.
         self.batches_marked_complete = 0
 
     def read(self) -> list[dict]:
