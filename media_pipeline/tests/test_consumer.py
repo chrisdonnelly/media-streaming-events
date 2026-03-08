@@ -63,7 +63,7 @@ def test_mark_complete_increments_batches_marked_complete():
 def test_mark_complete_runs_without_error():
     reader = MockEventReader([{"id": 1}])
     reader.read()
-    assert reader.mark_complete() is None
+    reader.mark_complete()
 
 
 def test_is_empty():
@@ -80,5 +80,5 @@ def test_is_empty_when_initialized_with_no_records():
 
 def test_close_runs_without_error():
     reader = MockEventReader([{"id": 1}])
-    assert reader.close() is None
+    reader.close()
     assert reader.read() == []

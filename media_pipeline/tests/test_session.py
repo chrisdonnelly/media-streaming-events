@@ -1,10 +1,10 @@
 from media_pipeline.pipeline.constants import REASON_LATE_EVENT
+from media_pipeline.pipeline.event_parser import parse_event
 from media_pipeline.pipeline.models import (
     FeatureRecord,
     PauseEvent,
     PlayEvent,
     StopEvent,
-    parse_event,
 )
 from media_pipeline.pipeline.session import Session, SessionManager
 from media_pipeline.tests.conftest import ListDLQ

@@ -26,11 +26,16 @@ class InMemoryDLQ(DeadLetterQueue):
 
 def main():
     output_dir = Path(__file__).parent / "media_pipeline" / "output"
-    reader = MockEventReader(SAMPLE_RECORDS)
+    reader = MockEventReader(records=SAMPLE_RECORDS)
     dlq = InMemoryDLQ()
-    session_manager = SessionManager(dlq)
-    writer = JSONWriter(output_dir)
-    processor = EventProcessor(reader, session_manager, writer, dlq)
+    session_manager = SessionManager(dead_letter_queue=dlq)
+    writer = JSONWriter(output_dir=output_dir)
+    processor = EventProcessor(
+        reader=reader,
+        session_manager=session_manager,
+        writer=writer,
+        dead_letter_queue=dlq,
+    )
 
     while not reader.is_empty():
         processor.process_batch()

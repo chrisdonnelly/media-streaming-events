@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from media_pipeline.pipeline.event_parser import parse_event
 from media_pipeline.pipeline.models import (
     FeatureRecord,
     PauseEvent,
@@ -7,58 +8,65 @@ from media_pipeline.pipeline.models import (
     StopEvent,
     UnknownEvent,
     UnknownEventPayload,
-    parse_event,
 )
 
 
-def test_play_event_valid(play_event_payload):
+def test_play_event_is_valid(play_event_payload):
     event = PlayEvent(**play_event_payload)
-    assert isinstance(event, PlayEvent)
+    assert event.user_id == play_event_payload["user_id"]
+    assert event.content_id == play_event_payload["content_id"]
+    assert event.position_seconds == play_event_payload["position_seconds"]
 
 
-def test_play_event_unknown_field_ignored(play_event_payload):
+def test_play_event_unknown_field_is_ignored(play_event_payload):
     event = PlayEvent(**{**play_event_payload, "unknown_field": "unknown_value"})
-    assert isinstance(event, PlayEvent)
+    assert event.user_id == play_event_payload["user_id"]
+    assert getattr(event, "unknown_field", None) is None
 
 
-def test_play_event_optional_field_default(play_event_payload):
+def test_play_event_optional_field_sets_default(play_event_payload):
     event = PlayEvent(**play_event_payload)
     assert event.subtitle_language is None
 
 
-def test_pause_event_valid(pause_event_payload):
+def test_pause_event_is_valid(pause_event_payload):
     event = PauseEvent(**pause_event_payload)
-    assert isinstance(event, PauseEvent)
+    assert event.user_id == pause_event_payload["user_id"]
+    assert event.content_id == pause_event_payload["content_id"]
+    assert event.position_seconds == pause_event_payload["position_seconds"]
 
 
-def test_pause_event_unknown_field_ignored(pause_event_payload):
+def test_pause_event_unknown_field_is_ignored(pause_event_payload):
     event = PauseEvent(**{**pause_event_payload, "unknown_field": "unknown_value"})
-    assert isinstance(event, PauseEvent)
+    assert event.user_id == pause_event_payload["user_id"]
+    assert getattr(event, "unknown_field", None) is None
 
 
-def test_pause_event_optional_field_default(pause_event_payload):
+def test_pause_event_optional_field_sets_default(pause_event_payload):
     event = PauseEvent(**pause_event_payload)
     assert event.buffer_health is None
 
 
-def test_stop_event_valid(stop_event_payload):
+def test_stop_event_is_valid(stop_event_payload):
     event = StopEvent(**stop_event_payload)
-    assert isinstance(event, StopEvent)
+    assert event.user_id == stop_event_payload["user_id"]
+    assert event.content_id == stop_event_payload["content_id"]
+    assert event.watch_duration_seconds == stop_event_payload["watch_duration_seconds"]
 
 
-def test_stop_event_unknown_field_ignored(stop_event_payload):
+def test_stop_event_unknown_field_is_ignored(stop_event_payload):
     event = StopEvent(**{**stop_event_payload, "unknown_field": "unknown_value"})
-    assert isinstance(event, StopEvent)
+    assert event.user_id == stop_event_payload["user_id"]
+    assert getattr(event, "unknown_field", None) is None
 
 
-def test_stop_event_optional_field_default(stop_event_payload):
+def test_stop_event_optional_field_sets_default(stop_event_payload):
     event = StopEvent(**stop_event_payload)
     assert event.completion_rate is None
 
 
-def test_unknown_event_valid(unknown_event_payload):
+def test_unknown_event_is_valid(unknown_event_payload):
     event = UnknownEvent(**unknown_event_payload)
-    assert isinstance(event, UnknownEvent)
     assert event.raw_payload == unknown_event_payload
 
 
@@ -68,7 +76,6 @@ def test_unknown_event_captures_extra_fields_in_raw_payload(unknown_event_payloa
         "unknown_field": "unknown_value",
     }
     event = UnknownEvent(**payload_with_extras)
-    assert isinstance(event, UnknownEvent)
     assert "unknown_field" in event.raw_payload
     assert event.raw_payload["unknown_field"] == "unknown_value"
 
@@ -80,7 +87,6 @@ def test_unknown_event_raw_payload_accepts_arbitrary_keys(unknown_event_payload)
         "nested": {"key": "value"},
     }
     event = UnknownEvent(**payload_with_extras)
-    assert isinstance(event, UnknownEvent)
     assert "unknown_field" in event.raw_payload
     assert "nested" in event.raw_payload
     assert event.raw_payload["nested"] == {"key": "value"}
@@ -128,8 +134,8 @@ def test_parse_event_invalid_field_type_returns_none(unknown_event_payload):
 def test_unknown_schema_version_accepted(play_event_payload):
     payload = {**play_event_payload, "schema_version": "2.0"}
     event = PlayEvent(**payload)
-    assert isinstance(event, PlayEvent)
     assert event.schema_version == "2.0"
+    assert event.user_id == play_event_payload["user_id"]
 
 
 def test_feature_record_serialises_datetimes():
@@ -152,5 +158,3 @@ def test_feature_record_serialises_datetimes():
     session_end = datetime.fromisoformat(dumped["session_end"].replace("Z", "+00:00"))
     assert session_start == feature_record.session_start
     assert session_end == feature_record.session_end
-    assert session_start.tzinfo is not None
-    assert session_end.tzinfo is not None

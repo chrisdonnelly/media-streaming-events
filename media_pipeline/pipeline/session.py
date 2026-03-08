@@ -40,18 +40,21 @@ class Session:
 
     def add_event(self, event: BaseEvent) -> bool:
         if isinstance(event, StopEvent):
-            if self._has_stop:
-                return False
-            self._session_end = event.timestamp
-            self._event_count += 1
-            self._total_watch_seconds = event.watch_duration_seconds
-            self._completion_rate = event.completion_rate
-            self._has_stop = True
-            return True
+            return self._handle_stop_event(event)
         self._session_end = event.timestamp
         self._event_count += 1
         if isinstance(event, PauseEvent):
             self._pause_count += 1
+        return True
+
+    def _handle_stop_event(self, event: StopEvent) -> bool:
+        if self._has_stop:
+            return False
+        self._session_end = event.timestamp
+        self._event_count += 1
+        self._total_watch_seconds = event.watch_duration_seconds
+        self._completion_rate = event.completion_rate
+        self._has_stop = True
         return True
 
     def is_complete(self) -> bool:

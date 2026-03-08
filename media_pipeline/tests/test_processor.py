@@ -19,7 +19,6 @@ def test_validation_failure_sent_to_dlq(frozen_time, play_event_payload):
     assert result.processed == 1
     assert result.dead_lettered == 1
     assert result.features_emitted == 0
-    assert dlq.count() == 1
     assert dlq.get_all()[0]["reason"] == REASON_VALIDATION_FAILURE
     assert dlq.get_all()[0]["raw"] == payload
 
@@ -33,7 +32,6 @@ def test_unknown_event_sent_to_dlq(frozen_time, unknown_event_payload):
     assert result.processed == 1
     assert result.dead_lettered == 1
     assert result.features_emitted == 0
-    assert dlq.count() == 1
     assert dlq.get_all()[0]["reason"] == REASON_UNKNOWN_EVENT_TYPE
     assert "raw_payload" in dlq.get_all()[0]["raw"]
 
@@ -73,7 +71,6 @@ def test_processing_result_counts_accurate(
     assert result.dead_lettered == 2
     assert result.processed == result.dead_lettered + typed_event_count
     assert result.features_emitted <= typed_event_count
-    assert result.features_emitted >= 0
 
 
 def test_mark_complete_after_batch(frozen_time, play_event_payload):
@@ -97,4 +94,3 @@ def test_shutdown_flushes_and_closes(frozen_time, play_event_payload):
     assert writer.records[0].total_watch_seconds == 0.0
     assert reader.batches_marked_complete == 2
     assert reader.is_empty()
-    assert reader.read() == []

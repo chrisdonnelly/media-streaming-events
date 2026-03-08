@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 
-from media_pipeline.pipeline.constants import (
+from .constants import (
     REASON_UNKNOWN_EVENT_TYPE,
     REASON_VALIDATION_FAILURE,
 )
-from media_pipeline.pipeline.models import UnknownEvent, parse_event
-from media_pipeline.pipeline.writer import EventWriter
+from .event_parser import parse_event
+from .models import UnknownEvent
+from .writer import EventWriter
 
 
 @dataclass
@@ -30,30 +31,32 @@ class EventProcessor:
 
     def process_batch(self) -> ProcessingResult:
         batch = self._reader.read()
-        processed = len(batch)
         dead_lettered = 0
         features_emitted = 0
-        for raw in batch:
-            event = parse_event(raw)
-            if event is None:
-                self._dead_letter_queue.add(raw, REASON_VALIDATION_FAILURE)
-                dead_lettered += 1
-            elif isinstance(event, UnknownEvent):
-                self._dead_letter_queue.add(
-                    event.model_dump(), REASON_UNKNOWN_EVENT_TYPE
-                )
-                dead_lettered += 1
-            else:
-                record = self._session_manager.process_event(event)
-                if record is not None:
-                    self._writer.write(record)
-                    features_emitted += 1
+        for raw_event in batch:
+            dead_letter, feature = self._process_event(raw_event)
+            dead_lettered += dead_letter
+            features_emitted += feature
         self._reader.mark_complete()
         return ProcessingResult(
-            processed=processed,
+            processed=len(batch),
             dead_lettered=dead_lettered,
             features_emitted=features_emitted,
         )
+
+    def _process_event(self, raw_event: dict) -> tuple[int, int]:
+        event = parse_event(raw_payload=raw_event)
+        if event is None:
+            self._dead_letter_queue.add(raw_event, REASON_VALIDATION_FAILURE)
+            return (1, 0)
+        if isinstance(event, UnknownEvent):
+            self._dead_letter_queue.add(event.model_dump(), REASON_UNKNOWN_EVENT_TYPE)
+            return (1, 0)
+        record = self._session_manager.process_event(event)
+        if record is not None:
+            self._writer.write(record)
+            return (0, 1)
+        return (0, 0)
 
     def shutdown(self) -> None:
         for record in self._session_manager.flush():

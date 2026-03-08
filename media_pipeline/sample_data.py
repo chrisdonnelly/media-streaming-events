@@ -42,7 +42,7 @@ SAMPLE_RECORDS = [
         "content_id": "content_schema_test",
         "event_type": "PLAY",
         "position_seconds": 0.0,
-        "subtitle_language": "en",
+        "device_type": "smart_tv",
     },
     # 4 — unknown event type
     {
